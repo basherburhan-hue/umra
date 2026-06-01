@@ -268,11 +268,19 @@ if(!company_name || !umrah_gifts || !phone){
 alert("هەموو خانەکان پڕبکەرەوە")
 return
 }
-
-const { error } =
+  
+const { data, error } =
 await supabase
 .from("companies")
-.insert([{company_name,umrah_gifts,phone}])
+.insert([{
+  company_name: company_name,
+  umrah_gifts: umrah_gifts,
+  phone: phone
+}])
+.select()
+
+console.log(data)
+console.log(error)
 
 if(error){
 alert(error.message)
