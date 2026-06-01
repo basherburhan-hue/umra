@@ -252,7 +252,18 @@ required>
 <div id="totalCount" class="stats-number">
 0
 </div>
+  
+<div class="glass card" style="margin-top:20px;">
 
+<div class="card-title">
+🏢 کۆمپانیا بەژداربووەکان
+</div>
+
+<div id="companiesList" class="names-box">
+</div>
+
+</div>
+  
 <div class="stats-text">
 ڕێژەی تۆمارکراوەکان
 </div>
@@ -321,6 +332,9 @@ document.getElementById('namesList')
 const totalCount =
 document.getElementById('totalCount')
 
+  const companiesList =
+document.getElementById('companiesList')
+  
 async function loadRegistrations(){
 
 const { data,error } =
@@ -393,6 +407,41 @@ loadRegistrations()
 
 })
 
+  const companiesList =
+document.getElementById('companiesList')
+
+async function loadCompanies(){
+
+const { data,error } =
+await supabase
+.from('companies')
+.select('*')
+.order('id',{ascending:false})
+
+if(error){
+console.log(error)
+return
+}
+
+companiesList.innerHTML=''
+
+data.forEach((item,index)=>{
+
+companiesList.innerHTML += `
+<div class="name-item">
+<span>${index+1}</span>
+🏢 ${item.company_name}
+<br>
+🎁 ${item.umrah_gifts} هەدیەی عمرە
+</div>
+`
+
+})
+
+}
+
+loadCompanies()
+  
 loadRegistrations()
 
 </script>
