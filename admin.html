@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:sans-serif;
+}
+
+body{
+background:linear-gradient(135deg,#031b12,#000);
+color:white;
+min-height:100vh;
+padding:20px;
+}
+
+.glass{
+background:rgba(255,255,255,.08);
+backdrop-filter:blur(15px);
+border:1px solid rgba(255,215,0,.25);
+border-radius:20px;
+padding:20px;
+margin-bottom:20px;
+}
+
+h1{
+text-align:center;
+color:#FFD700;
+margin-bottom:20px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin:8px 0;
+border:none;
+border-radius:10px;
+background:rgba(255,255,255,.1);
+color:white;
+}
+
+button{
+padding:12px 20px;
+background:#FFD700;
+border:none;
+border-radius:10px;
+cursor:pointer;
+font-weight:bold;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+}
+
+th,td{
+padding:12px;
+border-bottom:1px solid rgba(255,255,255,.1);
+text-align:center;
+}
+
+th{
+color:#FFD700;
+}
+
+.hidden{
+display:none;
+}
+</style>
+</head>
+<body>
+
+<div id="loginBox" class="glass">
+<h1>چوونەژوورەوەی ئەدمین</h1>
+
+<input type="password" id="password" placeholder="پاسوۆرد">
+
+<button onclick="login()">
+چوونەژوورەوە
+</button>
+</div>
+
+<div id="dashboard" class="hidden">
+
+<div class="glass">
+<h1>داشبۆردی پڕۆژەی دیاری عمرە</h1>
+</div>
+
+<div class="glass">
+
+<h2>زیادکردنی کۆمپانیا</h2>
+
+<input id="companyName" placeholder="ناوی کۆمپانیا">
+
+<input id="giftCount" placeholder="ژمارەی هەدیەی عمرە">
+
+<input id="companyPhone" placeholder="ژمارەی مۆبایل">
+
+<button onclick="addCompany()">
+زیادکردن
+</button>
+
+</div>
+
+<div class="glass">
+
+<h2>کۆمپانیا بەژداربووەکان</h2>
+
+<table>
+<thead>
+<tr>
+<th>ناوی کۆمپانیا</th>
+<th>هەدیەی عمرە</th>
+<th>مۆبایل</th>
+<th>کردار</th>
+</tr>
+</thead>
+
+<tbody id="companiesTable">
+</tbody>
+
+</table>
+
+</div>
+
+<div class="glass">
+
+<h2>ڕێژەی تۆمارکراوەکان</h2>
+
+<h1 id="count">0</h1>
+
+</div>
+
+<div class="glass">
+
+<h2>لیستی تۆمارکراوان</h2>
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>ناوی سیانی</th>
+<th>مۆبایل</th>
+</tr>
+</thead>
+
+<tbody id="registrations">
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+const ADMIN_PASSWORD = "karwan123";
+
+function login(){
+
+const pass =
+document.getElementById("password").value;
+
+if(pass === ADMIN_PASSWORD){
+
+document.getElementById("loginBox").style.display="none";
+
+document.getElementById("dashboard").classList.remove("hidden");
+
+}else{
+
+alert("پاسوۆرد هەڵەیە");
+
+}
+
+}
+
+let companies=[];
+
+function addCompany(){
+
+const name =
+document.getElementById("companyName").value;
+
+const gifts =
+document.getElementById("giftCount").value;
+
+const phone =
+document.getElementById("companyPhone").value;
+
+if(!name || !gifts || !phone){
+alert("هەموو خانەکان پڕبکەرەوە");
+return;
+}
+
+companies.push({
+name,
+gifts,
+phone
+});
+
+renderCompanies();
+
+document.getElementById("companyName").value="";
+document.getElementById("giftCount").value="";
+document.getElementById("companyPhone").value="";
+
+}
+
+function renderCompanies(){
+
+const table =
+document.getElementById("companiesTable");
+
+table.innerHTML="";
+
+companies.forEach((c,index)=>{
+
+table.innerHTML += `
+<tr>
+<td>${c.name}</td>
+<td>${c.gifts}</td>
+<td>${c.phone}</td>
+<td>
+<button onclick="deleteCompany(${index})">
+سڕینەوە
+</button>
+</td>
+</tr>
+`;
+
+});
+
+}
+
+function deleteCompany(index){
+
+companies.splice(index,1);
+
+renderCompanies();
+
+}
+
+/* نمونەی تۆمارکراوان */
+
+const registrations = [
+
+{
+name:"شعبان قادر",
+phone:"07500000000"
+},
+
+{
+name:"سلێمان بێغڵی",
+phone:"07511111111"
+},
+
+{
+name:"کوردستان تەسە",
+phone:"07522222222"
+}
+
+];
+
+function loadRegistrations(){
+
+const table =
+document.getElementById("registrations");
+
+document.getElementById("count").innerText =
+registrations.length;
+
+registrations.forEach((item,index)=>{
+
+table.innerHTML += `
+<tr>
+<td>${index+1}</td>
+<td>${item.name}</td>
+<td>${item.phone}</td>
+</tr>
+`;
+
+});
+
+}
+
+loadRegistrations();
+
+</script>
+
+</body>
+</html>
