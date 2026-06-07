@@ -1,28 +1,229 @@
-<script type="module">
-import { createClient }
-from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-const supabase = createClient(
-  "https://slllcibigutjivauryvc.supabase.co",
-  "sb_publishable_NRCDy249HKEkJwKywxRw3Q_krlu95TH"
-);
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دیاری عمرە - براوەکان</title>
 
-async function loadNames() {
-
-  const { data, error } = await supabase
-    .from("registrations")
-    .select("id,full_name");
-
-  if(error){
-    console.error(error);
-    return;
-  }
-
-  const names = data.map(x => x.full_name);
-
-  console.log(names);
-
+<style>
+body{
+margin:0;
+font-family:sans-serif;
+background:url('https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=80&w=1600&auto=format&fit=crop') center/cover fixed;
+color:#fff;
 }
 
-loadNames();
+.overlay{
+min-height:100vh;
+background:rgba(0,0,0,.65);
+padding:20px;
+}
+
+.card{
+max-width:900px;
+margin:auto;
+background:rgba(255,255,255,.12);
+backdrop-filter:blur(12px);
+border-radius:24px;
+padding:20px;
+border:1px solid rgba(255,255,255,.2);
+}
+
+h1{
+text-align:center;
+color:#7CFC98;
+}
+
+#winner{
+font-size:40px;
+text-align:center;
+margin:25px 0;
+color:#ff5757;
+font-weight:bold;
+line-height:1.5;
+}
+
+#winner small{
+font-size:22px;
+color:#FFD700;
+}
+
+button{
+padding:12px 20px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+}
+
+.primary{
+background:#16a34a;
+color:#fff;
+}
+
+.list{
+margin-top:20px;
+background:rgba(0,0,0,.25);
+padding:15px;
+border-radius:16px;
+}
+
+.row{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:8px;
+border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+.row small{
+color:#FFD700;
+}
+
+@media(max-width:600px){
+#winner{
+font-size:28px;
+}
+
+#winner small{
+font-size:18px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay">
+<div class="card">
+
+<h1>🕋 دیاری عمرە</h1>
+
+<div id="winner">کرتە لە هەڵبژاردنی براوە بکە</div>
+
+<button class="primary" onclick="pickWinner()">
+هەڵبژاردنی براوەی داهاتوو
+</button>
+
+<div class="list">
+<h3>مێژووی براوەکان</h3>
+<div id="history"></div>
+</div>
+
+</div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const supabase = createClient(
+'https://slllcibigutjivauryvc.supabase.co',
+'sb_publishable_NRCDy249HKEkJwKywxRw3Q_krlu95TH'
+);
+
+let participants = [];
+let winners = JSON.parse(localStorage.getItem('umrah_winners') || '[]');
+
+function playWinnerSound(){
+const audio = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
+audio.volume = 1;
+audio.play().catch(()=>{});
+}
+
+function renderHistory(){
+const el = document.getElementById('history');
+el.innerHTML = '';
+
+winners.forEach((item,i)=>{
+const row = document.createElement('div');
+row.className = 'row';
+
+row.innerHTML = `
+<span>
+${i+1}- ${item.name}
+<br>
+<small>شار: ${item.city || 'شار دیاری نەکراوە'}</small>
+</span>
+<button onclick="removeWinner(${i})">🗑️</button>
+`;
+
+el.appendChild(row);
+});
+}
+
+window.removeWinner = function(i){
+winners.splice(i,1);
+localStorage.setItem('umrah_winners', JSON.stringify(winners));
+renderHistory();
+}
+
+async function loadNames(){
+const {data,error} = await supabase
+.from('registrations')
+.select('full_name, city');
+
+if(error){
+document.getElementById('winner').textContent = 'هەڵە لە Supabase';
+return;
+}
+
+participants = data
+.filter(x => x.full_name)
+.map(x => ({
+name: x.full_name,
+city: x.city || 'شار دیاری نەکراوە'
+}));
+}
+
+await loadNames();
+renderHistory();
+
+window.pickWinner = function(){
+
+const available = participants.filter(p =>
+!winners.some(w => w.name === p.name)
+);
+
+if(!available.length){
+alert('هیچ بەشدارێک نەماوە');
+return;
+}
+
+let c = 0;
+const box = document.getElementById('winner');
+
+const t = setInterval(()=>{
+const temp = available[Math.floor(Math.random() * available.length)];
+
+box.innerHTML =
+temp.name +
+'<br><small>شار: ' + temp.city + '</small>';
+
+c++;
+},80);
+
+setTimeout(()=>{
+clearInterval(t);
+
+const winner = available[Math.floor(Math.random() * available.length)];
+
+playWinnerSound();
+
+box.innerHTML =
+'🎉 پیرۆزە 🎉<br>' +
+winner.name +
+'<br><small>شار: ' + winner.city + '</small>';
+
+winners.push(winner);
+
+localStorage.setItem('umrah_winners', JSON.stringify(winners));
+
+renderHistory();
+
+},4000);
+
+}
 </script>
+
+</body>
+</html>
