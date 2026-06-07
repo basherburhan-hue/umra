@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ku" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -52,6 +51,10 @@ background:rgba(255,255,255,.1);
 color:white;
 }
 
+input::placeholder{
+color:#ccc;
+}
+
 button{
 padding:12px 20px;
 background:#FFD700;
@@ -66,10 +69,15 @@ button:hover{
 opacity:.9;
 }
 
+.table-wrap{
+overflow-x:auto;
+}
+
 table{
 width:100%;
 border-collapse:collapse;
 margin-top:15px;
+min-width:650px;
 }
 
 th,td{
@@ -92,9 +100,13 @@ font-size:40px;
 font-weight:bold;
 color:#FFD700;
 }
-</style>
 
+.search-box{
+margin-bottom:10px;
+}
+</style>
 </head>
+
 <body>
 
 <div id="loginBox" class="glass">
@@ -102,9 +114,7 @@ color:#FFD700;
 
 <input type="password" id="password" placeholder="پاسوۆرد">
 
-<button onclick="login()">
-چوونەژوورەوە
-</button>
+<button onclick="login()">چوونەژوورەوە</button>
 </div>
 
 <div id="dashboard" class="hidden">
@@ -118,14 +128,10 @@ color:#FFD700;
 <h2>🏢 زیادکردنی کۆمپانیا</h2>
 
 <input id="companyName" placeholder="ناوی کۆمپانیا">
-
 <input id="giftCount" placeholder="ژمارەی هەدیەی عمرە">
-
 <input id="companyPhone" placeholder="ژمارەی مۆبایل">
 
-<button onclick="addCompany()">
-زیادکردن
-</button>
+<button onclick="addCompany()">زیادکردن</button>
 
 </div>
 
@@ -133,6 +139,7 @@ color:#FFD700;
 
 <h2>کۆمپانیا بەژداربووەکان</h2>
 
+<div class="table-wrap">
 <table>
 <thead>
 <tr>
@@ -144,15 +151,14 @@ color:#FFD700;
 </thead>
 
 <tbody id="companiesTable"></tbody>
-
 </table>
+</div>
 
 </div>
 
 <div class="glass">
 
 <h2>ڕێژەی تۆمارکراوەکان</h2>
-
 <div id="count" class="count-box">0</div>
 
 </div>
@@ -161,18 +167,26 @@ color:#FFD700;
 
 <h2>👥 لیستی تۆمارکراوان</h2>
 
+<input
+class="search-box"
+id="searchInput"
+placeholder="گەڕان بە ناو، ژمارە یان شار..."
+onkeyup="filterRegistrations()">
+
+<div class="table-wrap">
 <table>
 <thead>
 <tr>
 <th>#</th>
 <th>ناوی سیانی</th>
 <th>مۆبایل</th>
+<th>شار</th>
 </tr>
 </thead>
 
 <tbody id="registrations"></tbody>
-
 </table>
+</div>
 
 </div>
 
@@ -190,6 +204,8 @@ const supabase = createClient(
 
 const ADMIN_PASSWORD = "karwan123"
 
+let registrationsData = []
+
 window.login = function(){
 
 const pass = document.getElementById("password").value
@@ -203,23 +219,16 @@ loadCompanies()
 loadRegistrations()
 
 }else{
-
 alert("پاسوۆرد هەڵەیە")
-
 }
 
 }
 
 window.addCompany = async function(){
 
-const company_name =
-document.getElementById("companyName").value
-
-const umrah_gifts =
-document.getElementById("giftCount").value
-
-const phone =
-document.getElementById("companyPhone").value
+const company_name = document.getElementById("companyName").value
+const umrah_gifts = document.getElementById("giftCount").value
+const phone = document.getElementById("companyPhone").value
 
 if(!company_name || !umrah_gifts || !phone){
 alert("هەموو خانەکان پڕبکەرەوە")
@@ -246,8 +255,7 @@ loadCompanies()
 
 async function loadCompanies(){
 
-const table =
-document.getElementById("companiesTable")
+const table = document.getElementById("companiesTable")
 
 const { data,error } =
 await supabase
@@ -266,13 +274,11 @@ data.forEach((item)=>{
 
 table.innerHTML += `
 <tr>
-<td>${item.company_name}</td>
-<td>${item.umrah_gifts}</td>
-<td dir="ltr">${item.phone}</td>
+<td>${item.company_name || ''}</td>
+<td>${item.umrah_gifts || ''}</td>
+<td dir="ltr">${item.phone || ''}</td>
 <td>
-<button onclick="deleteCompany(${item.id})">
-سڕینەوە
-</button>
+<button onclick="deleteCompany(${item.id})">سڕینەوە</button>
 </td>
 </tr>
 `
@@ -294,11 +300,7 @@ loadCompanies()
 
 async function loadRegistrations(){
 
-const table =
-document.getElementById("registrations")
-
-const count =
-document.getElementById("count")
+const count = document.getElementById("count")
 
 const { data,error } =
 await supabase
@@ -311,7 +313,17 @@ console.log(error)
 return
 }
 
+registrationsData = data
+
 count.innerText = data.length
+
+renderRegistrations(data)
+
+}
+
+function renderRegistrations(data){
+
+const table = document.getElementById("registrations")
 
 table.innerHTML=""
 
@@ -320,12 +332,31 @@ data.forEach((item,index)=>{
 table.innerHTML += `
 <tr>
 <td>${index+1}</td>
-<td>${item.full_name}</td>
-<td dir="ltr">${item.phone}</td>
+<td>${item.full_name || ''}</td>
+<td dir="ltr">${item.phone || ''}</td>
+<td>${item.city || ''}</td>
 </tr>
 `
 
 })
+
+}
+
+window.filterRegistrations = function(){
+
+const search =
+document.getElementById("searchInput").value.toLowerCase()
+
+const filtered =
+registrationsData.filter(item =>
+
+(item.full_name || '').toLowerCase().includes(search) ||
+(item.phone || '').toLowerCase().includes(search) ||
+(item.city || '').toLowerCase().includes(search)
+
+)
+
+renderRegistrations(filtered)
 
 }
 
